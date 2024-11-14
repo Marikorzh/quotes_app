@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:jffff/http/http_requests.dart';
 import 'package:jffff/http/model.dart';
+import 'package:jffff/pages/FavoriteQuotes.dart';
 
 class RandomQuotePage extends StatefulWidget {
   const RandomQuotePage({super.key});
@@ -45,6 +47,13 @@ class _RandomQuotePageState extends State<RandomQuotePage> {
     });
   }
 
+  void addToHive(String quote, String author, String category){
+    Quote quotes = Quote(
+        quote: quote, author: author, category: category);
+    Hive.box("quotes").add(quotes);
+    changeIcon();
+  }
+
   void getFont() {
     setState(() {
       indexFont++;
@@ -67,6 +76,15 @@ class _RandomQuotePageState extends State<RandomQuotePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+              onPressed: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => FavoriteQuotes()));
+              },
+              icon: Icon(Icons.navigate_next_outlined))
+        ],
+      ),
         backgroundColor: colorBackground,
         body: FutureBuilder<Quote>(
           future: futureQuote,
@@ -108,7 +126,11 @@ class _RandomQuotePageState extends State<RandomQuotePage> {
           ),
           IconButton(
               iconSize: 35,
-              onPressed: () => changeIcon(),
+              onPressed: () => addToHive(
+                  quote.data!.quote,
+                  quote.data!.author,
+                  quote.data!.category
+              ),
               icon: Icon(
                   isLike ? Icons.favorite : Icons.favorite_border)),
           ElevatedButton(
