@@ -4,10 +4,10 @@ import 'package:jffff/StringUrl.dart';
 import 'package:jffff/http/model.dart';
 import "package:http/http.dart" as http;
 
-StringUri strUri = StringUri();
+StringUrl strUri = StringUrl();
 
 Future<Quote> fetchQuote() async {
-  final response = await http.get(strUri.uri,
+  final response = await http.get(strUri.url,
       headers: {
         strUri.headerKey : strUri.headerValue});
 

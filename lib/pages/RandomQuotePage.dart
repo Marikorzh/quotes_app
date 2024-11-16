@@ -15,7 +15,7 @@ class RandomQuotePage extends StatefulWidget {
 }
 
 class _RandomQuotePageState extends State<RandomQuotePage> {
-  double size = 12;
+  double size = 20;
   int indexFont = 0;
   bool isLike = false;
   late Color colorBackground;
@@ -41,15 +41,19 @@ class _RandomQuotePageState extends State<RandomQuotePage> {
     super.initState();
   }
 
-  void changeIcon(){
+  void doIt() async{
+    setState(() {
+      futureQuote = fetchQuote();
+    });
+  }
+
+  void changeIcon() {
     setState(() {
       isLike = !isLike;
     });
   }
 
-  void addToHive(String quote, String author, String category){
-    Quote quotes = Quote(
-        quote: quote, author: author, category: category);
+  void addToHive(Quote? quotes) {
     Hive.box("quotes").add(quotes);
     changeIcon();
   }
@@ -76,15 +80,16 @@ class _RandomQuotePageState extends State<RandomQuotePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-              onPressed: (){
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => FavoriteQuotes()));
-              },
-              icon: Icon(Icons.navigate_next_outlined))
-        ],
-      ),
+        appBar: AppBar(
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => FavoriteQuotes(backgroundColor: colorBackground,)));
+                },
+                icon: Icon(Icons.navigate_next_outlined))
+          ],
+        ),
         backgroundColor: colorBackground,
         body: FutureBuilder<Quote>(
           future: futureQuote,
@@ -101,47 +106,69 @@ class _RandomQuotePageState extends State<RandomQuotePage> {
 
   Widget buildQuotePage(AsyncSnapshot<Quote> quote) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
-              quote.data!.quote,
-              style: GoogleFonts.getFont(
-                currentFont,
-                fontSize: size,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 20),
+        height: 500,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20), color: Colors.white),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                quote.data!.quote,
+                style: GoogleFonts.getFont(
+                  currentFont,
+                  fontSize: size,
+                ),
               ),
             ),
-          ),
-          Slider(
-            value: size,
-            min: 12,
-            max: 30,
-            onChanged: (value) {
-              setState(() {
-                size = value;
-              });
-            },
-          ),
-          IconButton(
-              iconSize: 35,
-              onPressed: () => addToHive(
-                  quote.data!.quote,
-                  quote.data!.author,
-                  quote.data!.category
-              ),
-              icon: Icon(
-                  isLike ? Icons.favorite : Icons.favorite_border)),
-          ElevatedButton(
-              onPressed: () => getFont(), child: Text("Зміна шрифта")),
-          ElevatedButton(
-              onPressed: () {
-                randomColor();
-              },
-              child: Text("Зміна кольору фону")),
-        ],
+            SizedBox(height: 20,),
+            SizedBox(
+              width: 300,
+              height: 50,
+              child: ElevatedButton(
+                  onPressed: () => doIt(),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(colorBackground),
+                  ),
+                  child: Text("New Quote", style: TextStyle(color: Colors.white, fontSize: 18),)),
+            ),
+            SizedBox(height: 20,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _circularIconButton(Icon(Icons.text_fields, size: 30), getFont),
+                RawMaterialButton(
+                  onPressed: () => addToHive(quote.data),
+                  elevation: 2.0,
+                  fillColor: Colors.white,
+                  child: Icon(
+                    isLike ? Icons.favorite : Icons.favorite_border,
+                    size: 30,
+                  ),
+                  padding: EdgeInsets.all(15.0),
+                  shape: CircleBorder(),
+                ),
+                _circularIconButton(
+                    Icon(Icons.palette_outlined, size: 30), randomColor),
+              ],
+            )
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _circularIconButton(Icon icon, Function func) {
+    return RawMaterialButton(
+      onPressed: () => func(),
+      elevation: 2.0,
+      fillColor: Colors.white,
+      child: icon,
+      padding: EdgeInsets.all(15.0),
+      shape: CircleBorder(),
     );
   }
 }
